@@ -1,2 +1,2 @@
 # Searchella
-Searchella is an faster api to search keywords on mail
+Searchella is a faster API to search keywords on mail databases
