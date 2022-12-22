@@ -11,7 +11,7 @@ type SearchellaServer struct {
 	server *http.Server
 }
 
-func NewServer(mux *chi.Mux) *http.Server {
+func NewServer(mux *chi.Mux) *SearchellaServer {
 	s := &http.Server{
 		Addr:           ":9000",
 		Handler:        mux,
@@ -19,7 +19,7 @@ func NewServer(mux *chi.Mux) *http.Server {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	return s
+	return &SearchellaServer{s}
 }
 
 func (s *SearchellaServer) Run() {
