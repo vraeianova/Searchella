@@ -39,38 +39,40 @@ type Output struct {
 var extension = ".go"
 
 // Función recursiva para obtener todas las carpetas de un directorio
-func getFolders(folderpath string) map[string]interface{} {
-	// Crear un mapa para almacenar las carpetas del directorio
+
+func getFolders(folderpath string) (map[string]interface{}, []Record) {
+	// Crear un mapa para almacenar las carpetas del directorio y un slice de Record
 	folders := make(map[string]interface{})
+	var records []Record
 
 	// Iterar sobre los elementos del directorio
 	entries, err := ioutil.ReadDir(folderpath)
-
 	if err != nil {
 		fmt.Println(err)
-		return folders
+		return folders, records
 	}
 
-	// execFile, err := os.Executable()
-	// if err != nil {
-	// 	// Handle error
-	// }
-	// fmt.Println("entries", entries)
-	var records []Record
+	// Iterar sobre cada elemento
 	for _, entry := range entries {
 		// Obtener la ruta completa del elemento
 		fullPath := filepath.Join(folderpath, entry.Name())
 		if !strings.HasPrefix(entry.Name(), ".") {
-			if !entry.IsDir() {
-
-				// if entry.Name() != ""
-				// file, err := os.Open(fullPath)
+			if entry.IsDir() {
+				// Si es un directorio, llamar a la función recursivamente
+				subfolders, subrecords := getFolders(fullPath)
+				// Añadir el mapa de subcarpetas y el slice de subregistros al mapa y al slice actuales
+				folders[entry.Name()] = subfolders
+				records = append(records, subrecords...)
+			} else {
+				// Si es un archivo, procesarlo y añadirlo al slice de registros
 
 				ext := path.Ext(entry.Name())
-				// fmt.Println("ext", ext, "extension", extension)
 				if ext != extension {
-					fmt.Println("Entro con la extension", ext)
+					// fmt.Println("Entro con la extension", ext)
+					fmt.Println("estoy a punto de leer la linea", entry.Name())
 					file, err := os.Open(fullPath)
+
+					// fmt.Println("archivo", file)
 
 					if err != nil {
 						fmt.Println(err)
@@ -89,6 +91,7 @@ func getFolders(folderpath string) map[string]interface{} {
 					for scanner.Scan() {
 						line := scanner.Text()
 						// fmt.Println("Verificando la línea", line)
+
 						// Divide la línea en clave y valor
 						parts := strings.Split(line, ": ")
 						if len(parts) != 2 {
@@ -138,71 +141,34 @@ func getFolders(folderpath string) map[string]interface{} {
 						}
 
 					}
+					fmt.Println(record.MessageID)
+
 					record.Message = currentRecord.Message
 					records = append(records, record)
 
-					// fmt.Println("Verificando el record", record)
-
-					// outputJSON, err := json.Marshal(records)
-					// if err != nil {
-					// 	fmt.Println(err)
-
-					// }
-					// fmt.Println("VERIFICAR OUTPUT EN JSON", string(outputJSON))
-					fmt.Println("VERIFICANDO EL ARREGLO DE RECORDS", records)
-					// output := Output{
-					// 	Index:   "messages",
-					// 	Records: records,
-					// }
-
-					// outputJSON, err := json.Marshal(records)
-					// if err != nil {
-					// 	fmt.Println(err)
-
-					// }
-					output := Output{
-						Index:   "messages",
-						Records: records,
-					}
-					// fmt.Println("Verificar output", string(outputJSON))
-					outputJSON, err := json.Marshal(output)
-					if err != nil {
-						fmt.Println(err)
-
-					}
-					// // Exporta la cadena de caracteres de formato JSON a un archivo
-					err = ioutil.WriteFile("output.json", outputJSON, 0644)
-					if err != nil {
-						fmt.Println(err)
-
-					}
 				}
-
 			}
 		}
+		output := Output{
+			Index:   "messages",
+			Records: records,
+		}
 
-	}
-	// fmt.Println("Verificar records", records)
+		outputJSON, err := json.Marshal(output)
+		if err != nil {
+			fmt.Println(err)
 
-	// Devolver el mapa de carpetas
-	return folders
-}
+		}
+		fmt.Println("Verificar output", string(outputJSON))
+		err = ioutil.WriteFile("output.json", outputJSON, 0644)
+		if err != nil {
+			fmt.Println(err)
 
-func exportJSON(jsonData []byte) error {
-	// Crear un archivo en el directorio actual
-	file, err := os.Create("folders.json")
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Escribir el JSON en el archivo
-	_, err = file.Write(jsonData)
-	if err != nil {
-		return err
+		}
 	}
 
-	return nil
+	// Devolver el mapa de carpetas y el slice de registros
+	return folders, records
 }
 
 func main() {
@@ -215,23 +181,4 @@ func main() {
 
 	getFolders(currentDir)
 
-	// jsonData, err := json.Marshal(folders)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// Escribir el JSON en un archivo en el directorio actual
-	// file, err := os.Create("folders.json")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// defer file.Close()
-
-	// _, err = file.Write(jsonData)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
 }
