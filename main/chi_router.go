@@ -1,0 +1,81 @@
+package main
+
+import (
+	"io"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/cors"
+)
+
+func main() {
+	r := chi.NewRouter()
+
+	// Basic CORS
+	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
+	r.Use(cors.Handler(cors.Options{
+		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+
+	r.Get("/api/search/{from_mail}/", func(w http.ResponseWriter, r *http.Request) {
+
+		from_mail := chi.URLParam(r, "from_mail")
+
+		query := `{
+			"search_type": "match",
+			"query":
+			{
+				"term": "` + from_mail + `"	
+			},
+			"from": 0,
+			"max_results": 20,
+			"_source": []
+		}`
+
+		req, err := http.NewRequest("POST", "http://localhost:4080/api/messages/_search", strings.NewReader(query))
+		if err != nil {
+			log.Fatal(err)
+		}
+		req.SetBasicAuth("admin", "Complexpass#123")
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36")
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
+		log.Println(resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// fmt.Fprintf(w, "Mail de respuesta: %s", from_mail)
+		w.Write([]byte(body))
+	})
+
+	// r.Post("/api/search/{test_mail}/", func(w http.ResponseWriter, r *http.Request) {
+	// 	// Obtener el valor del parámetro test_mail de la URL
+	// 	test_mail := chi.URLParam(r, "test_mail")
+
+	// 	// Obtener los datos enviados en el cuerpo de la solicitud POST
+	// 	// r.ParseForm()
+	// 	// nombre := r.PostFormValue("nombre")
+	// 	// apellido := r.PostFormValue("apellido")
+
+	// 	// Escribir la respuesta al cliente
+	// 	fmt.Fprintf(w, "Hola, %s %s! Bienvenido a mi API. Tu correo es %s.", test_mail)
+	// })
+
+	http.ListenAndServe(":8080", r)
+}

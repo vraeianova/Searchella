@@ -13,7 +13,7 @@ func main() {
         "search_type": "match",
         "query":
         {
-            "term": "Wed, 13 Dec 2000 13:09:00 -0800 (PST)"
+            "term": "tracy.ramsey@enron.com"
             
         },
         "from": 0,
