@@ -17,24 +17,25 @@ Utilizando Chi como router.
 Utiliza como base de datos Zincsearch
 
 ### ¿Como utilizarlo? 💻
-- Posiciona el script indexer.go en la carpeta raiz donde se encuentran tus carpetas de correo y ejecutalo utilizando:
+
+- Ejecuta el servidor utilizando:
 
 ```
 go run server.go
 ```
 
-
-- Corre el script usando
+- Posiciona el script indexer.go en la carpeta raiz donde se encuentran tus carpetas de correo y ejecutalo utilizando:
 
 ```
 go run indexer.go
 ```
 
-- Espera que se genere un archivo llamado
+- Espera que se genere un archivo llamado:
 
 ```
 output.json
 ```
+
 
 ### Siguientes mejoras a la aplicación 🧾
 - Crear un api mas robusto.
