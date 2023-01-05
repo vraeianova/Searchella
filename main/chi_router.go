@@ -26,15 +26,15 @@ func main() {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
-	r.Get("/api/search/{from_mail}/", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/api/search/{search_phrase}/", func(w http.ResponseWriter, r *http.Request) {
 
-		from_mail := chi.URLParam(r, "from_mail")
+		search_phrase := chi.URLParam(r, "search_phrase")
 
 		query := `{
 			"search_type": "match",
 			"query":
 			{
-				"term": "` + from_mail + `"	
+				"term": "` + search_phrase + `"	
 			},
 			"from": 0,
 			"max_results": 20,
@@ -59,23 +59,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		// fmt.Fprintf(w, "Mail de respuesta: %s", from_mail)
 		w.Write([]byte(body))
 	})
-
-	// r.Post("/api/search/{test_mail}/", func(w http.ResponseWriter, r *http.Request) {
-	// 	// Obtener el valor del parámetro test_mail de la URL
-	// 	test_mail := chi.URLParam(r, "test_mail")
-
-	// 	// Obtener los datos enviados en el cuerpo de la solicitud POST
-	// 	// r.ParseForm()
-	// 	// nombre := r.PostFormValue("nombre")
-	// 	// apellido := r.PostFormValue("apellido")
-
-	// 	// Escribir la respuesta al cliente
-	// 	fmt.Fprintf(w, "Hola, %s %s! Bienvenido a mi API. Tu correo es %s.", test_mail)
-	// })
 
 	http.ListenAndServe(":8080", r)
 }
